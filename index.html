@@ -1,0 +1,3384 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AnimeStream</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        :root {
+            --ios-bg: #F2F2F7;
+            --ios-card: #FFFFFF;
+            --ios-blue: #007AFF;
+            --ios-green: #34C759;
+            --ios-red: #FF3B30;
+            --ios-orange: #FF9500;
+            --ios-yellow: #FFCC00;
+            --ios-pink: #FF2D55;
+            --ios-purple: #AF52DE;
+            --ios-teal: #5AC8FA;
+            --ios-indigo: #5856D6;
+            --ios-gray: #8E8E93;
+            --ios-gray2: #AEAEB2;
+            --ios-gray3: #C7C7CC;
+            --ios-gray4: #D1D1D6;
+            --ios-gray5: #E5E5EA;
+            --ios-gray6: #F2F2F7;
+            --ios-dark: #000000;
+            --ios-label: #000000;
+            --ios-secondary-label: #3C3C4399;
+            --ios-tertiary-label: #3C3C434D;
+            --ios-quaternary-label: #3C3C432E;
+            --ios-separator: #3C3C434A;
+            --ios-opaque-separator: #C6C6C8;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "Segoe UI", sans-serif;
+            background: #000;
+            color: var(--ios-label);
+            overflow-x: hidden;
+            line-height: 1.47059;
+            letter-spacing: -0.022em;
+        }
+
+        /* Splash Screen */
+        #splashScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            background: #000000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s;
+        }
+
+        #splashScreen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .splash-content {
+            text-align: center;
+        }
+
+        .splash-logo {
+            color: #fff;
+            font-size: 48px;
+            font-weight: 600;
+            letter-spacing: -0.003em;
+            opacity: 0;
+            transform: scale(0.9) translateY(20px);
+            animation: splashIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            margin-bottom: 12px;
+        }
+
+        .splash-subtitle {
+            color: rgba(255,255,255,0.6);
+            font-size: 17px;
+            font-weight: 400;
+            letter-spacing: -0.022em;
+            opacity: 0;
+            animation: fadeIn 0.8s ease-out 0.8s forwards;
+        }
+
+        .ios-spinner {
+            width: 36px;
+            height: 36px;
+            margin-top: 40px;
+            opacity: 0;
+            animation: fadeIn 0.4s ease-out 1.2s forwards;
+        }
+
+        .ios-spinner::after {
+            content: '';
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #fff;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes splashIn {
+            0% { opacity: 0; transform: scale(0.9) translateY(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes fadeIn { to { opacity: 1; } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Auth Container */
+        #authContainer {
+            display: none;
+            min-height: 100vh;
+            min-height: 100dvh;
+            background: var(--ios-bg);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        #authContainer.show {
+            display: block;
+            opacity: 1;
+        }
+
+        .ios-nav {
+            background: rgba(255,255,255,0.72);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 0.5px solid var(--ios-opaque-separator);
+            padding: 44px 16px 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .ios-nav-title {
+            font-size: 17px;
+            font-weight: 600;
+            text-align: center;
+            color: var(--ios-label);
+        }
+
+        .auth-content {
+            padding: 20px 16px;
+            max-width: 414px;
+            margin: 0 auto;
+        }
+
+        .ios-segmented-control {
+            display: flex;
+            background: var(--ios-gray5);
+            border-radius: 8px;
+            padding: 2px;
+            margin-bottom: 24px;
+        }
+
+        .ios-segment {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--ios-label);
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            background: transparent;
+            font-family: inherit;
+        }
+
+        .ios-segment.active {
+            background: var(--ios-card);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.12), 0 3px 1px rgba(0,0,0,0.04);
+        }
+
+        .ios-form-group {
+            margin-bottom: 16px;
+        }
+
+        .ios-label {
+            display: block;
+            font-size: 13px;
+            color: var(--ios-secondary-label);
+            margin-bottom: 6px;
+            padding-left: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .ios-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--ios-card);
+            border: 0.5px solid var(--ios-opaque-separator);
+            border-radius: 10px;
+            font-size: 17px;
+            color: var(--ios-label);
+            font-family: inherit;
+            transition: all 0.2s;
+            -webkit-appearance: none;
+        }
+
+        .ios-input:focus {
+            outline: none;
+            border-color: var(--ios-blue);
+        }
+
+        .ios-input::placeholder {
+            color: var(--ios-tertiary-label);
+        }
+
+        .ios-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--ios-blue);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 17px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 8px;
+        }
+
+        .ios-btn:active {
+            opacity: 0.8;
+            transform: scale(0.98);
+        }
+
+        .ios-btn-secondary {
+            background: var(--ios-gray5);
+            color: var(--ios-blue);
+        }
+
+        .ios-divider {
+            display: flex;
+            align-items: center;
+            margin: 24px 0;
+            color: var(--ios-gray);
+            font-size: 13px;
+        }
+
+        .ios-divider::before, .ios-divider::after {
+            content: '';
+            flex: 1;
+            height: 0.5px;
+            background: var(--ios-opaque-separator);
+        }
+
+        .ios-divider span {
+            padding: 0 12px;
+        }
+
+        .owner-code {
+            display: none;
+        }
+
+        .owner-code.show {
+            display: block;
+        }
+
+        /* Main App */
+        #mainApp {
+            display: none;
+            min-height: 100vh;
+            min-height: 100dvh;
+            background: var(--ios-bg);
+            padding-bottom: 84px;
+        }
+
+        #mainApp.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* Navbar */
+        .ios-navbar {
+            background: rgba(255,255,255,0.72);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 0.5px solid var(--ios-opaque-separator);
+            padding: 44px 16px 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .ios-navbar-title {
+            font-size: 17px;
+            font-weight: 600;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .ios-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--ios-blue), var(--ios-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            overflow: hidden;
+            border: 0.5px solid rgba(0,0,0,0.1);
+        }
+
+        .ios-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .ios-search-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--ios-gray5);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .ios-search-btn:active {
+            background: var(--ios-gray4);
+            transform: scale(0.95);
+        }
+
+        /* Content */
+        .ios-content {
+            padding: 16px;
+        }
+
+        .ios-section-header {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--ios-label);
+            letter-spacing: -0.021em;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .ios-section-header span {
+            font-size: 15px;
+            color: var(--ios-blue);
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        /* Event Banner */
+        .ios-event-banner {
+            background: linear-gradient(135deg, var(--ios-purple), var(--ios-pink));
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .ios-event-banner:active {
+            transform: scale(0.98);
+        }
+
+        .ios-event-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+
+        .ios-event-tag {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .ios-event-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .ios-event-desc {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* Horizontal Scroll */
+        .ios-scroll-container {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 12px;
+            margin-bottom: 24px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .ios-scroll-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .ios-card-large {
+            flex: 0 0 auto;
+            width: 280px;
+            background: var(--ios-card);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .ios-card-large:active {
+            transform: scale(0.98);
+        }
+
+        .ios-card-large-image {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            background: linear-gradient(135deg, var(--ios-purple), var(--ios-blue));
+            display: block;
+        }
+
+        .ios-card-large-body {
+            padding: 16px;
+        }
+
+        .ios-card-large-title {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ios-card-large-meta {
+            font-size: 13px;
+            color: var(--ios-secondary-label);
+        }
+
+        .ios-card-large-badge {
+            display: inline-block;
+            background: var(--ios-red);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-top: 8px;
+        }
+
+        /* Grid */
+        .ios-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        @media (min-width: 768px) {
+            .ios-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .ios-grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+
+        .ios-card {
+            background: var(--ios-card);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .ios-card:active {
+            transform: scale(0.96);
+        }
+
+        .ios-card-image {
+            width: 100%;
+            aspect-ratio: 3/4;
+            object-fit: cover;
+            background: linear-gradient(135deg, var(--ios-purple), var(--ios-blue));
+            display: block;
+        }
+
+        .ios-card-body {
+            padding: 10px;
+        }
+
+        .ios-card-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ios-label);
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ios-card-subtitle {
+            font-size: 11px;
+            color: var(--ios-secondary-label);
+        }
+
+        /* Tab Bar */
+        .ios-tabbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255,255,255,0.72);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-top: 0.5px solid var(--ios-opaque-separator);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0 34px;
+            padding-bottom: calc(8px + env(safe-area-inset-bottom));
+            z-index: 1000;
+        }
+
+        .ios-tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            padding: 4px 20px;
+            color: var(--ios-gray);
+            cursor: pointer;
+            transition: color 0.2s;
+            border: none;
+            background: transparent;
+            font-family: inherit;
+        }
+
+        .ios-tab.active {
+            color: var(--ios-blue);
+        }
+
+        .ios-tab-icon {
+            font-size: 24px;
+            line-height: 1;
+        }
+
+        .ios-tab-label {
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        /* Pages */
+        .ios-page {
+            display: none;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .ios-page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Profile */
+        .ios-profile-header {
+            background: var(--ios-card);
+            padding: 24px 16px;
+            text-align: center;
+            border-bottom: 0.5px solid var(--ios-opaque-separator);
+        }
+
+        .ios-profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--ios-blue), var(--ios-purple));
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 32px;
+            font-weight: 600;
+            overflow: hidden;
+            border: 0.5px solid rgba(0,0,0,0.1);
+        }
+
+        .ios-profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .ios-profile-name {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .ios-profile-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .ios-stats {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+        }
+
+        .ios-stat {
+            text-align: center;
+        }
+
+        .ios-stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--ios-label);
+        }
+
+        .ios-stat-label {
+            font-size: 12px;
+            color: var(--ios-secondary-label);
+            margin-top: 2px;
+        }
+
+        .ios-table {
+            background: var(--ios-card);
+            margin: 16px 0;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .ios-table-header {
+            font-size: 13px;
+            color: var(--ios-secondary-label);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 8px 16px;
+            margin-top: 16px;
+        }
+
+        .ios-cell {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 0.5px solid var(--ios-opaque-separator);
+            cursor: pointer;
+            transition: background 0.2s;
+            background: transparent;
+            border: none;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+            font-size: 17px;
+        }
+
+        .ios-cell:last-child {
+            border-bottom: none;
+        }
+
+        .ios-cell:active {
+            background: var(--ios-gray6);
+        }
+
+        .ios-cell-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .ios-cell-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .ios-cell-title {
+            color: var(--ios-label);
+        }
+
+        .ios-cell-detail {
+            color: var(--ios-secondary-label);
+            font-size: 17px;
+        }
+
+        .ios-cell-arrow {
+            color: var(--ios-quaternary-label);
+            font-size: 14px;
+            margin-left: 4px;
+        }
+
+        .ios-toggle {
+            position: relative;
+            width: 51px;
+            height: 31px;
+            background: var(--ios-gray4);
+            border-radius: 15.5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .ios-toggle.active {
+            background: var(--ios-green);
+        }
+
+        .ios-toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 27px;
+            height: 27px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.2s;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+        }
+
+        .ios-toggle.active::after {
+            transform: translateX(20px);
+        }
+
+        /* Search Page */
+        .ios-search-header {
+            background: rgba(255,255,255,0.72);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 0.5px solid var(--ios-opaque-separator);
+            padding: 44px 16px 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .ios-search-box {
+            position: relative;
+        }
+
+        .ios-search-input-large {
+            width: 100%;
+            padding: 10px 16px 10px 40px;
+            background: var(--ios-gray5);
+            border: none;
+            border-radius: 10px;
+            font-size: 17px;
+            font-family: inherit;
+            color: var(--ios-label);
+            outline: none;
+        }
+
+        .ios-search-input-large:focus {
+            background: var(--ios-gray6);
+        }
+
+        .ios-search-icon-large {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--ios-gray);
+            font-size: 16px;
+        }
+
+        .ios-search-tabs {
+            display: flex;
+            gap: 24px;
+            padding: 0 16px;
+            border-bottom: 0.5px solid var(--ios-opaque-separator);
+            margin-top: 12px;
+        }
+
+        .ios-search-tab {
+            padding: 12px 0;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--ios-secondary-label);
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            position: relative;
+        }
+
+        .ios-search-tab.active {
+            color: var(--ios-blue);
+        }
+
+        .ios-search-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--ios-blue);
+            border-radius: 1px;
+        }
+
+        /* Feed */
+        .ios-feed-item {
+            background: var(--ios-card);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .ios-feed-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .ios-feed-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--ios-blue), var(--ios-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 600;
+            overflow: hidden;
+        }
+
+        .ios-feed-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .ios-feed-user {
+            flex: 1;
+        }
+
+        .ios-feed-username {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .ios-feed-time {
+            font-size: 13px;
+            color: var(--ios-secondary-label);
+        }
+
+        .ios-feed-content {
+            font-size: 15px;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .ios-feed-actions {
+            display: flex;
+            gap: 16px;
+            padding-top: 12px;
+            border-top: 0.5px solid var(--ios-opaque-separator);
+        }
+
+        .ios-feed-action {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--ios-secondary-label);
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 4px;
+            font-family: inherit;
+        }
+
+        .ios-feed-action.active {
+            color: var(--ios-red);
+        }
+
+        /* Detail Page */
+        .ios-detail-hero {
+            position: relative;
+            height: 280px;
+            background: linear-gradient(135deg, var(--ios-purple), var(--ios-blue));
+            display: flex;
+            align-items: flex-end;
+            padding: 16px;
+        }
+
+        .ios-detail-poster {
+            width: 100px;
+            height: 150px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 2px solid rgba(255,255,255,0.2);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            margin-right: 16px;
+        }
+
+        .ios-detail-info {
+            flex: 1;
+            color: #fff;
+            padding-bottom: 8px;
+        }
+
+        .ios-detail-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .ios-detail-meta {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .ios-detail-content {
+            padding: 20px 16px;
+            background: var(--ios-bg);
+            min-height: calc(100vh - 280px);
+        }
+
+        .ios-episode-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ios-episode {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--ios-card);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .ios-episode:active {
+            background: var(--ios-gray6);
+            transform: scale(0.98);
+        }
+
+        .ios-episode-number {
+            width: 32px;
+            height: 32px;
+            background: var(--ios-blue);
+            color: #fff;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .ios-episode-info {
+            flex: 1;
+        }
+
+        .ios-episode-title {
+            font-weight: 600;
+            color: var(--ios-label);
+            font-size: 15px;
+            margin-bottom: 2px;
+        }
+
+        .ios-episode-duration {
+            font-size: 13px;
+            color: var(--ios-secondary-label);
+        }
+
+        /* Video Player */
+        .ios-player {
+            background: #000;
+            width: 100%;
+            aspect-ratio: 16/9;
+            position: relative;
+        }
+
+        .ios-player iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .ios-player-info {
+            background: var(--ios-card);
+            padding: 16px;
+            border-radius: 16px 16px 0 0;
+            margin-top: -12px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Comments */
+        .ios-comments {
+            padding: 16px;
+        }
+
+        .ios-comment-input {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: var(--ios-gray6);
+            border-radius: 12px;
+        }
+
+        .ios-comment-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--ios-blue), var(--ios-purple));
+            flex-shrink: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .ios-comment-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .ios-comment-field {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ios-comment-textarea {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 18px;
+            background: var(--ios-card);
+            font-size: 15px;
+            font-family: inherit;
+            resize: none;
+            min-height: 36px;
+            max-height: 100px;
+            outline: none;
+        }
+
+        .ios-comment-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--ios-blue);
+            color: #fff;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .ios-comment-btn:active {
+            opacity: 0.8;
+        }
+
+        .ios-comment {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: var(--ios-card);
+            border-radius: 12px;
+        }
+
+        .ios-comment-content {
+            flex: 1;
+        }
+
+        .ios-comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .ios-comment-author {
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--ios-label);
+        }
+
+        .ios-comment-time {
+            font-size: 12px;
+            color: var(--ios-secondary-label);
+        }
+
+        .ios-comment-text {
+            font-size: 15px;
+            color: var(--ios-label);
+            line-height: 1.4;
+        }
+
+        .ios-comment-sticker {
+            max-width: 120px;
+            border-radius: 8px;
+            margin-top: 4px;
+        }
+
+        .ios-comment-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 8px;
+        }
+
+        .ios-comment-action {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            color: var(--ios-secondary-label);
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 4px;
+            font-family: inherit;
+        }
+
+        .ios-comment-action.active {
+            color: var(--ios-red);
+        }
+
+        /* Store */
+        .ios-store-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .ios-store-item {
+            background: var(--ios-card);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-family: inherit;
+        }
+
+        .ios-store-item:active {
+            transform: scale(0.96);
+            background: var(--ios-gray6);
+        }
+
+        .ios-store-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+
+        .ios-store-name {
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--ios-label);
+            margin-bottom: 4px;
+        }
+
+        .ios-store-price {
+            color: var(--ios-blue);
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .ios-vip-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-top: 6px;
+        }
+
+        .vip-bronze { background: #CD7F32; color: #fff; }
+        .vip-silver { background: #C0C0C0; color: #fff; }
+        .vip-gold { background: #FFD700; color: #000; }
+        .vip-master { background: linear-gradient(135deg, var(--ios-purple), var(--ios-blue)); color: #fff; }
+        .vip-diamond { background: linear-gradient(135deg, #00d2ff, var(--ios-blue)); color: #fff; }
+
+        /* User Result */
+        .ios-user-result {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--ios-card);
+            border-bottom: 0.5px solid var(--ios-opaque-separator);
+            cursor: pointer;
+        }
+
+        .ios-user-result:active {
+            background: var(--ios-gray6);
+        }
+
+        .ios-user-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--ios-blue), var(--ios-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 600;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .ios-user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .ios-user-info {
+            flex: 1;
+        }
+
+        .ios-user-name {
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--ios-label);
+        }
+
+        .ios-user-meta {
+            font-size: 13px;
+            color: var(--ios-secondary-label);
+        }
+
+        /* Upload Form */
+        .ios-form {
+            background: var(--ios-card);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .ios-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 0.5px solid var(--ios-opaque-separator);
+            border-radius: 10px;
+            font-size: 17px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            outline: none;
+        }
+
+        .ios-textarea:focus {
+            border-color: var(--ios-blue);
+        }
+
+        .ios-episode-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .ios-btn-small {
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .ios-btn-add {
+            background: var(--ios-green);
+            color: #fff;
+        }
+
+        .ios-btn-remove {
+            background: var(--ios-red);
+            color: #fff;
+        }
+
+        /* Sheet */
+        .ios-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--ios-card);
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 2000;
+            max-height: 50vh;
+        }
+
+        .ios-sheet.show {
+            transform: translateY(0);
+        }
+
+        .ios-sheet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .ios-sheet-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .ios-sheet-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--ios-gray6);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .ios-sticker-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .ios-sticker {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            border: none;
+            padding: 0;
+            background: var(--ios-gray6);
+        }
+
+        .ios-sticker:active {
+            transform: scale(0.9);
+        }
+
+        .ios-sticker img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Toast */
+        .ios-toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(20px);
+            color: #fff;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            z-index: 10000;
+            opacity: 0;
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+
+        .ios-toast.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* Overlay */
+        .ios-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.4);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            z-index: 1999;
+        }
+
+        .ios-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Owner Panel */
+        .ios-owner-panel {
+            background: linear-gradient(135deg, var(--ios-purple), var(--ios-pink));
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        .ios-owner-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .ios-owner-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .ios-owner-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .ios-owner-btn:active {
+            background: rgba(255,255,255,0.3);
+            transform: scale(0.98);
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            --ios-bg: #000000;
+            --ios-card: #1C1C1E;
+            --ios-label: #FFFFFF;
+            --ios-secondary-label: #EBEBF599;
+            --ios-tertiary-label: #EBEBF54D;
+            --ios-quaternary-label: #EBEBF52E;
+            --ios-gray: #8E8E93;
+            --ios-gray5: #2C2C2E;
+            --ios-gray6: #1C1C1E;
+            --ios-opaque-separator: #38383A;
+        }
+
+        body.dark-mode .ios-navbar,
+        body.dark-mode .ios-nav,
+        body.dark-mode .ios-tabbar,
+        body.dark-mode .ios-search-header {
+            background: rgba(28,28,30,0.72);
+            border-color: var(--ios-opaque-separator);
+        }
+
+        body.dark-mode .ios-input,
+        body.dark-mode .ios-textarea,
+        body.dark-mode .ios-search-input-large {
+            background: #2C2C2E;
+            border-color: #38383A;
+            color: #fff;
+        }
+
+        body.dark-mode .ios-comment-textarea {
+            background: #2C2C2E;
+            color: #fff;
+        }
+
+        /* Empty State */
+        .ios-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--ios-secondary-label);
+        }
+
+        .ios-empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .ios-empty-text {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--ios-label);
+        }
+
+        .ios-empty-subtext {
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Splash Screen -->
+    <div id="splashScreen">
+        <div class="splash-content">
+            <div class="splash-logo">AnimeStream</div>
+            <div class="splash-subtitle">Platform Streaming Anime</div>
+            <div class="ios-spinner"></div>
+        </div>
+    </div>
+
+    <!-- Auth Container -->
+    <div id="authContainer">
+        <div class="ios-nav">
+            <div class="ios-nav-title">Selamat Datang</div>
+        </div>
+        
+        <div class="auth-content">
+            <div class="ios-segmented-control">
+                <button class="ios-segment active" onclick="switchAuthTab('user', this)">Pengguna</button>
+                <button class="ios-segment" onclick="switchAuthTab('owner', this)">Owner</button>
+            </div>
+
+            <form id="authForm" onsubmit="handleAuth(event)">
+                <div class="ios-form-group">
+                    <label class="ios-label">Username</label>
+                    <input type="text" class="ios-input" id="username" required placeholder="Masukkan username" autocomplete="username">
+                </div>
+                
+                <div class="ios-form-group">
+                    <label class="ios-label">Kata Sandi</label>
+                    <input type="password" class="ios-input" id="password" required placeholder="Masukkan kata sandi" autocomplete="current-password">
+                </div>
+
+                <div class="ios-form-group">
+                    <label class="ios-label">Model Perangkat</label>
+                    <input type="text" class="ios-input" id="deviceModel" required placeholder="iPhone 14, Samsung S23, dll">
+                </div>
+
+                <div class="ios-form-group owner-code" id="ownerCodeGroup">
+                    <label class="ios-label">Kode Owner</label>
+                    <input type="text" class="ios-input" id="ownerCode" placeholder="Masukkan kode verifikasi">
+                </div>
+
+                <button type="submit" class="ios-btn">Masuk</button>
+            </form>
+
+            <div class="ios-divider">
+                <span>atau</span>
+            </div>
+
+            <button type="button" class="ios-btn ios-btn-secondary" onclick="loginWithGoogle()">
+                Lanjutkan dengan Google
+            </button>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp">
+        
+        <!-- HOME PAGE -->
+        <div class="ios-page active" id="homePage">
+            <div class="ios-navbar">
+                <button class="ios-avatar" id="headerAvatar" onclick="navigateTo('profile')">
+                    <span id="headerAvatarText">U</span>
+                    <img id="headerAvatarImg" style="display: none;" alt="">
+                </button>
+                <div class="ios-navbar-title">Beranda</div>
+                <button class="ios-search-btn" onclick="navigateTo('search')">🔍</button>
+            </div>
+
+            <div class="ios-content">
+                <!-- Event Banner -->
+                <div id="eventBanner" style="display: none;"></div>
+
+                <!-- Anime Terbaru -->
+                <div class="ios-section-header">
+                    Anime Terbaru
+                    <span onclick="showAll('new')">Lihat Semua</span>
+                </div>
+                <div class="ios-scroll-container" id="newAnimeList"></div>
+
+                <!-- Rekomendasi -->
+                <div class="ios-section-header">
+                    Rekomendasi
+                    <span onclick="showAll('recommended')">Lihat Semua</span>
+                </div>
+                <div class="ios-grid" id="recommendedAnimeList"></div>
+
+                <!-- Lengkap -->
+                <div class="ios-section-header">
+                    Sudah Lengkap
+                    <span onclick="showAll('completed')">Lihat Semua</span>
+                </div>
+                <div class="ios-grid" id="completedAnimeList"></div>
+            </div>
+        </div>
+
+        <!-- SEARCH PAGE -->
+        <div class="ios-page" id="searchPage">
+            <div class="ios-search-header">
+                <div class="ios-search-box">
+                    <span class="ios-search-icon-large">🔍</span>
+                    <input type="text" class="ios-search-input-large" id="searchInput" placeholder="Cari anime atau pengguna..." onkeyup="handleSearchInput(this.value)">
+                </div>
+                <div class="ios-search-tabs">
+                    <button class="ios-search-tab active" onclick="switchSearchTab('anime', this)">Anime</button>
+                    <button class="ios-search-tab" onclick="switchSearchTab('users', this)">Pengguna</button>
+                </div>
+            </div>
+
+            <div class="ios-content" style="padding-top: 0;">
+                <div id="searchResults">
+                    <div class="ios-empty">
+                        <div class="ios-empty-icon">🔍</div>
+                        <div class="ios-empty-text">Cari Anime</div>
+                        <div class="ios-empty-subtext">Ketik untuk mencari anime atau pengguna</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FEED PAGE -->
+        <div class="ios-page" id="feedPage">
+            <div class="ios-navbar">
+                <div class="ios-navbar-title">Feed Komunitas</div>
+                <button class="ios-search-btn" onclick="navigateTo('search')">🔍</button>
+            </div>
+
+            <div class="ios-content">
+                <div id="feedList">
+                    <div class="ios-empty">
+                        <div class="ios-empty-icon">💬</div>
+                        <div class="ios-empty-text">Belum Ada Post</div>
+                        <div class="ios-empty-subtext">Jadilah yang pertama memposting!</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROFILE PAGE -->
+        <div class="ios-page" id="profilePage">
+            <div class="ios-navbar">
+                <button class="ios-search-btn" onclick="navigateTo('search')" style="visibility: hidden;">🔍</button>
+                <div class="ios-navbar-title">Profil</div>
+                <button class="ios-search-btn" onclick="navigateTo('settings')">⚙️</button>
+            </div>
+
+            <div class="ios-profile-header">
+                <div class="ios-profile-avatar" id="profileAvatar">
+                    <span id="profileAvatarText">U</span>
+                    <img id="profileAvatarImg" style="display: none;" alt="">
+                </div>
+                <div class="ios-profile-name" id="profileName">Username</div>
+                <div class="ios-profile-badge" id="profileLevel">
+                    <span>⭐</span>
+                    <span id="levelText">Level 1</span>
+                </div>
+                
+                <div class="ios-stats">
+                    <div class="ios-stat">
+                        <div class="ios-stat-value" id="saldoValue">Rp0</div>
+                        <div class="ios-stat-label">Saldo</div>
+                    </div>
+                    <div class="ios-stat">
+                        <div class="ios-stat-value" id="xpValue">0 XP</div>
+                        <div class="ios-stat-label">Progress</div>
+                    </div>
+                    <div class="ios-stat">
+                        <div class="ios-stat-value" id="watchCount">0</div>
+                        <div class="ios-stat-label">Ditonton</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ios-table-header">Menu</div>
+            <div class="ios-table">
+                <button class="ios-cell" onclick="navigateTo('watchHistory')">
+                    <div class="ios-cell-content">
+                        <div class="ios-cell-icon" style="background: #007AFF20; color: var(--ios-blue);">📺</div>
+                        <div class="ios-cell-title">Riwayat Menonton</div>
+                    </div>
+                    <div class="ios-cell-arrow">›</div>
+                </button>
+                <button class="ios-cell" onclick="navigateTo('settings')">
+                    <div class="ios-cell-content">
+                        <div class="ios-cell-icon" style="background: #8E8E9320; color: var(--ios-gray);">⚙️</div>
+                        <div class="ios-cell-title">Pengaturan</div>
+                    </div>
+                    <div class="ios-cell-arrow">›</div>
+                </button>
+            </div>
+
+            <div class="ios-table-header">Informasi Akun</div>
+            <div class="ios-table">
+                <div class="ios-cell">
+                    <div class="ios-cell-content">
+                        <div class="ios-cell-title">Bergabung</div>
+                    </div>
+                    <div class="ios-cell-detail" id="joinDate">-</div>
+                </div>
+                <div class="ios-cell">
+                    <div class="ios-cell-content">
+                        <div class="ios-cell-title">Perangkat</div>
+                    </div>
+                    <div class="ios-cell-detail" id="deviceDisplay">-</div>
+                </div>
+                <div class="ios-cell" id="roleDisplay" style="display: none;">
+                    <div class="ios-cell-content">
+                        <div class="ios-cell-title">Role</div>
+                    </div>
+                    <div class="ios-cell-detail" style="color: var(--ios-blue); font-weight: 600;">Owner</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SETTINGS PAGE -->
+        <div class="ios-page" id="settingsPage">
+            <div class="ios-navbar">
+                <div class="ios-navbar-title">Pengaturan</div>
+            </div>
+
+            <div class="ios-content">
+                <!-- Owner Panel -->
+                <div id="ownerPanel" style="display: none;">
+                    <div class="ios-owner-panel">
+                        <div class="ios-owner-title">Panel Owner</div>
+                        <div class="ios-owner-grid">
+                            <button class="ios-owner-btn" onclick="ownerAddSaldo()">💰 Tambah Saldo</button>
+                            <button class="ios-owner-btn" onclick="ownerEditLevel()">⭐ Edit Level</button>
+                            <button class="ios-owner-btn" onclick="ownerCreateEvent()">🎉 Buat Event</button>
+                            <button class="ios-owner-btn" onclick="ownerManageFeed()">📢 Kelola Feed</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ios-table-header">Tampilan</div>
+                <div class="ios-table">
+                    <div class="ios-cell">
+                        <div class="ios-cell-content">
+                            <div class="ios-cell-icon" style="background: #1C1C1E; color: #fff;">🌙</div>
+                            <div class="ios-cell-title">Mode Gelap</div>
+                        </div>
+                        <div class="ios-toggle" id="darkModeToggle" onclick="toggleDarkMode()"></div>
+                    </div>
+                </div>
+
+                <div class="ios-table-header">Profil</div>
+                <div class="ios-table">
+                    <button class="ios-cell" onclick="showEditProfile()">
+                        <div class="ios-cell-content">
+                            <div class="ios-cell-icon" style="background: #007AFF20; color: var(--ios-blue);">✏️</div>
+                            <div class="ios-cell-title">Edit Profil</div>
+                        </div>
+                        <div class="ios-cell-arrow">›</div>
+                    </button>
+                    <button class="ios-cell" onclick="navigateTo('store')">
+                        <div class="ios-cell-content">
+                            <div class="ios-cell-icon" style="background: #FF950020; color: var(--ios-orange);">🛒</div>
+                            <div class="ios-cell-title">Toko</div>
+                        </div>
+                        <div class="ios-cell-arrow">›</div>
+                    </button>
+                </div>
+
+                <div class="ios-table-header" id="ownerUploadSection" style="display: none;">Admin</div>
+                <div class="ios-table" id="ownerUploadMenu" style="display: none;">
+                    <button class="ios-cell" onclick="navigateTo('upload')">
+                        <div class="ios-cell-content">
+                            <div class="ios-cell-icon" style="background: #34C75920; color: var(--ios-green);">⬆️</div>
+                            <div class="ios-cell-title">Upload Anime</div>
+                        </div>
+                        <div class="ios-cell-arrow">›</div>
+                    </button>
+                </div>
+
+                <div class="ios-table-header">Akun</div>
+                <div class="ios-table">
+                    <button class="ios-cell" onclick="changePassword()">
+                        <div class="ios-cell-content">
+                            <div class="ios-cell-icon" style="background: #5856D620; color: var(--ios-indigo);">🔐</div>
+                            <div class="ios-cell-title">Ganti Kata Sandi</div>
+                        </div>
+                        <div class="ios-cell-arrow">›</div>
+                    </button>
+                    <button class="ios-cell" onclick="switchAccount()">
+                        <div class="ios-cell-content">
+                            <div class="ios-cell-icon" style="background: #FF950020; color: var(--ios-orange);">🔄</div>
+                            <div class="ios-cell-title">Ganti Akun</div>
+                        </div>
+                        <div class="ios-cell-arrow">›</div>
+                    </button>
+                    <button class="ios-cell" onclick="deleteAccount()" style="color: var(--ios-red);">
+                        <div class="ios-cell-content">
+                            <div class="ios-cell-icon" style="background: #FF3B3020; color: var(--ios-red);">🗑️</div>
+                            <div class="ios-cell-title" style="color: var(--ios-red);">Hapus Akun</div>
+                        </div>
+                        <div class="ios-cell-arrow" style="color: var(--ios-red);">›</div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- STORE PAGE -->
+        <div class="ios-page" id="storePage">
+            <div class="ios-navbar">
+                <div class="ios-navbar-title">Toko</div>
+            </div>
+
+            <div class="ios-content">
+                <div style="background: var(--ios-card); border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 24px;">
+                    <div style="font-size: 13px; color: var(--ios-secondary-label); margin-bottom: 4px;">Saldo Anda</div>
+                    <div id="storeSaldo" style="font-size: 34px; font-weight: 700; color: var(--ios-label);">Rp0</div>
+                </div>
+                
+                <div class="ios-table-header">Item</div>
+                <div class="ios-store-grid">
+                    <button class="ios-store-item" onclick="buyItem('border', 1000)">
+                        <div class="ios-store-icon">🖼️</div>
+                        <div class="ios-store-name">Border Profil</div>
+                        <div class="ios-store-price">Rp1.000</div>
+                    </button>
+                    
+                    <button class="ios-store-item" onclick="buyItem('banner', 2500)">
+                        <div class="ios-store-icon">🎨</div>
+                        <div class="ios-store-name">Banner</div>
+                        <div class="ios-store-price">Rp2.500</div>
+                    </button>
+                    
+                    <button class="ios-store-item" onclick="buyItem('badge', 5000)">
+                        <div class="ios-store-icon">🏅</div>
+                        <div class="ios-store-name">Badge Premium</div>
+                        <div class="ios-store-price">Rp5.000</div>
+                    </button>
+                    
+                    <button class="ios-store-item" onclick="buyItem('rare_sticker', 3000)">
+                        <div class="ios-store-icon">🎭</div>
+                        <div class="ios-store-name">Sticker Langka</div>
+                        <div class="ios-store-price">Rp3.000</div>
+                    </button>
+
+                    <button class="ios-store-item" onclick="buyItem('animated_border', 7500)">
+                        <div class="ios-store-icon">✨</div>
+                        <div class="ios-store-name">Border Animasi</div>
+                        <div class="ios-store-price">Rp7.500</div>
+                    </button>
+
+                    <button class="ios-store-item" onclick="buyItem('special_title', 10000)">
+                        <div class="ios-store-icon">👑</div>
+                        <div class="ios-store-name">Judul Spesial</div>
+                        <div class="ios-store-price">Rp10.000</div>
+                    </button>
+
+                    <button class="ios-store-item" onclick="buyItem('legendary_frame', 15000)">
+                        <div class="ios-store-icon">🔥</div>
+                        <div class="ios-store-name">Bingkai Legendaris</div>
+                        <div class="ios-store-price">Rp15.000</div>
+                    </button>
+
+                    <button class="ios-store-item" onclick="buyItem('cosmic_badge', 20000)">
+                        <div class="ios-store-icon">🌌</div>
+                        <div class="ios-store-name">Lencana Kosmik</div>
+                        <div class="ios-store-price">Rp20.000</div>
+                    </button>
+                </div>
+
+                <div class="ios-table-header">VIP Membership</div>
+                <div class="ios-table">
+                    <button class="ios-cell" onclick="buyVIP('bronze', 15000)">
+                        <div class="ios-cell-content">
+                            <div class="ios-cell-title">Bronze</div>
+                            <div style="font-size: 13px; color: var(--ios-secondary-label);">Akses dasar VIP</div>
+                        </div>
+                        <span class="ios-vip-badge vip-bronze">Rp15.000</span>
+                    </button>
+                    
+                    <button class="ios-cell" onclick="buyVIP('silver', 30000)">
+                        <div class="ios-cell-content">
+                            <div class="ios-cell-title">Silver</div>
+                            <div style="font-size: 13px; color: var(--ios-secondary-label);">Akses standar VIP</div>
+                        </div>
+                        <span class="ios-vip-badge vip-silver">Rp30.000</span>
+                    </button>
+                    
+                    <button class="ios-cell" onclick="buyVIP('gold', 50000)">
+                        <div class="ios-cell-content">
+                            <div class="ios-cell-title">Gold</div>
+                            <div style="font-size: 13px; color: var(--ios-secondary-label);">Akses premium VIP</div>
+                        </div>
+                        <span class="ios-vip-badge vip-gold">Rp50.000</span>
+                    </button>
+                    
+                    <button class="ios-cell" onclick="buyVIP('master', 100000)">
+                        <div class="ios-cell-content">
+                            <div class="ios-cell-title">Master</div>
+                            <div style="font-size: 13px; color: var(--ios-secondary-label);">Akses elite VIP</div>
+                        </div>
+                        <span class="ios-vip-badge vip-master">Rp100.000</span>
+                    </button>
+                    
+                    <button class="ios-cell" onclick="buyVIP('diamond', 250000)">
+                        <div class="ios-cell-content">
+                            <div class="ios-cell-title">Diamond</div>
+                            <div style="font-size: 13px; color: var(--ios-secondary-label);">Akses tertinggi VIP</div>
+                        </div>
+                        <span class="ios-vip-badge vip-diamond">Rp250.000</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- WATCH HISTORY PAGE -->
+        <div class="ios-page" id="historyPage">
+            <div class="ios-navbar">
+                <div class="ios-navbar-title">Riwayat</div>
+            </div>
+
+            <div class="ios-content">
+                <div id="watchHistoryList"></div>
+            </div>
+        </div>
+
+        <!-- UPLOAD PAGE -->
+        <div class="ios-page" id="uploadPage">
+            <div class="ios-navbar">
+                <div class="ios-navbar-title">Upload Anime</div>
+            </div>
+
+            <div class="ios-content">
+                <div class="ios-form">
+                    <div class="ios-form-group">
+                        <label class="ios-label">Judul Anime</label>
+                        <input type="text" class="ios-input" id="uploadTitle" required placeholder="Masukkan judul anime">
+                    </div>
+                    
+                    <div class="ios-form-group">
+                        <label class="ios-label">Genre</label>
+                        <input type="text" class="ios-input" id="uploadGenre" placeholder="Action, Comedy, Romance" required>
+                    </div>
+                    
+                    <div class="ios-form-group">
+                        <label class="ios-label">Studio</label>
+                        <input type="text" class="ios-input" id="uploadStudio" required placeholder="Nama studio">
+                    </div>
+                    
+                    <div class="ios-form-group">
+                        <label class="ios-label">Tag</label>
+                        <select class="ios-input" id="uploadTag" style="cursor: pointer;">
+                            <option value="new">🆕 Anime Terbaru</option>
+                            <option value="recommended">⭐ Rekomendasi</option>
+                            <option value="completed">✅ Sudah Lengkap</option>
+                        </select>
+                    </div>
+                    
+                    <div class="ios-form-group">
+                        <label class="ios-label">Sinopsis</label>
+                        <textarea class="ios-textarea" id="uploadSynopsis" rows="4" required placeholder="Ceritakan sinopsis anime..."></textarea>
+                    </div>
+                    
+                    <div class="ios-form-group">
+                        <label class="ios-label">URL Poster</label>
+                        <input type="url" class="ios-input" id="uploadPoster" placeholder="https://example.com/poster.jpg" required>
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <label class="ios-label">Daftar Episode</label>
+                        <div id="episodeInputs">
+                            <div class="ios-episode-row">
+                                <input type="number" class="ios-input" placeholder="No" style="flex: 0.5; min-width: 60px;" min="1">
+                                <input type="text" class="ios-input" placeholder="Judul Episode" style="flex: 2;">
+                                <input type="url" class="ios-input" placeholder="Link YouTube" style="flex: 2;">
+                                <button type="button" class="ios-btn-small ios-btn-remove" onclick="removeEpisodeRow(this)">✕</button>
+                            </div>
+                        </div>
+                        <button type="button" class="ios-btn-small ios-btn-add" onclick="addEpisodeRow()" style="margin-top: 8px; width: 100%;">+ Tambah Episode</button>
+                    </div>
+
+                    <button type="button" class="ios-btn" onclick="uploadAnime()" style="margin-top: 24px;">Upload Anime</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ANIME DETAIL PAGE -->
+        <div class="ios-page" id="animeDetailPage">
+            <div class="ios-detail-hero">
+                <img class="ios-detail-poster" id="detailPoster" src="" alt="Poster">
+                <div class="ios-detail-info">
+                    <div class="ios-detail-title" id="detailTitle">Judul Anime</div>
+                    <div class="ios-detail-meta" id="detailMeta">Genre • Studio</div>
+                    <div style="margin-top: 6px; font-size: 12px; opacity: 0.8;" id="detailTag">Tag</div>
+                </div>
+            </div>
+            
+            <div class="ios-detail-content">
+                <h2 class="ios-section-title">Sinopsis</h2>
+                <p style="color: var(--ios-secondary-label); line-height: 1.5; margin-bottom: 24px; font-size: 15px;" id="detailSynopsis">Sinopsis anime...</p>
+                
+                <h2 class="ios-section-title">Episode</h2>
+                <div class="ios-episode-list" id="episodeList"></div>
+            </div>
+        </div>
+
+        <!-- WATCH PAGE -->
+        <div class="ios-page" id="watchPage">
+            <div class="ios-player">
+                <iframe id="videoPlayer" src="" allowfullscreen></iframe>
+            </div>
+            
+            <div class="ios-player-info">
+                <h2 id="watchTitle" style="font-size: 17px; font-weight: 600; margin-bottom: 4px;">Judul Episode</h2>
+                <p id="watchAnime" style="color: var(--ios-secondary-label); font-size: 15px; margin-bottom: 16px;">Nama Anime</p>
+                
+                <div class="ios-comments">
+                    <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 16px;">Komentar</h3>
+                    
+                    <div class="ios-comment-input">
+                        <div class="ios-comment-avatar" id="commentAvatar">
+                            <span id="commentAvatarText">U</span>
+                            <img id="commentAvatarImg" style="display: none;" alt="">
+                        </div>
+                        <div class="ios-comment-field">
+                            <textarea class="ios-comment-textarea" id="commentInput" placeholder="Tulis komentar..." rows="1" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
+                            <button type="button" class="ios-comment-btn" onclick="toggleStickerPicker()" style="background: var(--ios-gray5); color: var(--ios-gray);">😊</button>
+                            <button type="button" class="ios-comment-btn" onclick="postComment()">➤</button>
+                        </div>
+                    </div>
+                    
+                    <div id="commentsList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- EDIT PROFILE PAGE -->
+        <div class="ios-page" id="editProfilePage">
+            <div class="ios-navbar">
+                <div class="ios-navbar-title">Edit Profil</div>
+            </div>
+
+            <div class="ios-content">
+                <div class="ios-form">
+                    <div class="ios-form-group">
+                        <label class="ios-label">Foto Profil (URL)</label>
+                        <input type="url" class="ios-input" id="editAvatarUrl" placeholder="https://example.com/avatar.jpg">
+                    </div>
+                    
+                    <div class="ios-form-group">
+                        <label class="ios-label">Username</label>
+                        <input type="text" class="ios-input" id="editUsername" readonly style="background: var(--ios-gray6); color: var(--ios-gray);">
+                        <small style="color: var(--ios-secondary-label); font-size: 12px; display: block; margin-top: 6px;">Bisa diubah 1x dalam 7 hari</small>
+                    </div>
+                    
+                    <button type="button" class="ios-btn" onclick="saveProfile()">Simpan</button>
+                    <button type="button" class="ios-btn ios-btn-secondary" onclick="navigateTo('profile')" style="margin-top: 8px;">Batal</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB BAR -->
+        <nav class="ios-tabbar">
+            <button class="ios-tab active" onclick="navigateTo('home')">
+                <div class="ios-tab-icon">🏠</div>
+                <div class="ios-tab-label">Beranda</div>
+            </button>
+            <button class="ios-tab" onclick="navigateTo('feed')">
+                <div class="ios-tab-icon">💬</div>
+                <div class="ios-tab-label">Feed</div>
+            </button>
+            <button class="ios-tab" onclick="navigateTo('search')">
+                <div class="ios-tab-icon">🔍</div>
+                <div class="ios-tab-label">Cari</div>
+            </button>
+            <button class="ios-tab" onclick="navigateTo('profile')">
+                <div class="ios-tab-icon">👤</div>
+                <div class="ios-tab-label">Profil</div>
+            </button>
+        </nav>
+    </div>
+
+    <!-- STICKER SHEET -->
+    <div class="ios-sheet" id="stickerSheet">
+        <div class="ios-sheet-header">
+            <div class="ios-sheet-title">Pilih Sticker</div>
+            <button type="button" class="ios-sheet-close" onclick="toggleStickerPicker()">✕</button>
+        </div>
+        <div class="ios-sticker-grid" id="stickerGrid"></div>
+    </div>
+
+    <!-- OVERLAY -->
+    <div class="ios-overlay" id="overlay" onclick="toggleStickerPicker()"></div>
+
+    <!-- TOAST -->
+    <div class="ios-toast" id="toast"></div>
+
+    <script>
+        // DATA STORAGE
+        let currentUser = null;
+        let users = JSON.parse(localStorage.getItem('animeUsers')) || [];
+        let animes = JSON.parse(localStorage.getItem('animeData')) || [
+            {
+                id: 1,
+                title: "Tensei Shitara Slime Datta Ken Movie",
+                genre: "Isekai, Fantasy, Action",
+                studio: "8bit",
+                tag: "new",
+                synopsis: "Rimuru dan kawan-kawan menghadapi ancaman baru di kerajaan Raja Rajaib.",
+                poster: "https://i.ibb.co/8g7rV2z/tensura.jpg",
+                episodes: [{ number: 1, title: "Movie", url: "https://www.youtube.com/embed/dQw4w9WgXcQ" }],
+                comments: [],
+                uploadDate: Date.now()
+            },
+            {
+                id: 2,
+                title: "Horimiya",
+                genre: "Romance, Comedy, Slice of Life",
+                studio: "CloverWorks",
+                tag: "completed",
+                synopsis: "Kyouko Hori dan Izumi Miyamura memiliki sisi tersembunyi yang tidak diketahui orang lain.",
+                poster: "https://i.ibb.co/3z5w3vP/horimiya.jpg",
+                episodes: [
+                    { number: 1, title: "Seorang yang Rupawan", url: "https://www.youtube.com/embed/dQw4w9WgXcQ" },
+                    { number: 2, title: "Hori-san dan Miyamura-kun", url: "https://www.youtube.com/embed/dQw4w9WgXcQ" },
+                    { number: 3, title: "Itu Sebabnya", url: "https://www.youtube.com/embed/dQw4w9WgXcQ" }
+                ],
+                comments: [],
+                uploadDate: Date.now() - 86400000
+            },
+            {
+                id: 3,
+                title: "Jujutsu Kaisen",
+                genre: "Action, Supernatural",
+                studio: "MAPPA",
+                tag: "recommended",
+                synopsis: "Yuji Itadori menelan jari kutukan dan menjadi wadah untuk Sukuna.",
+                poster: "https://i.ibb.co/JQZ7m5P/jjk.jpg",
+                episodes: [{ number: 1, title: "Ryomen Sukuna", url: "https://www.youtube.com/embed/dQw4w9WgXcQ" }],
+                comments: [],
+                uploadDate: Date.now() - 172800000
+            }
+        ];
+        let currentAnime = null;
+        let currentEpisode = null;
+        let authMode = 'user';
+        let searchType = 'anime';
+        let events = JSON.parse(localStorage.getItem('animeEvents')) || [];
+        let feeds = JSON.parse(localStorage.getItem('animeFeeds')) || [];
+
+        // STICKERS
+        const stickers = [
+            'https://i.ibb.co/1z4xYqP/sticker1.png',
+            'https://i.ibb.co/2d7XqYz/sticker2.png',
+            'https://i.ibb.co/3k4mZzP/sticker3.png',
+            'https://i.ibb.co/4f5n6mQ/sticker4.png',
+            'https://i.ibb.co/5g7h8jK/sticker5.png',
+            'https://i.ibb.co/6h9l0mN/sticker6.png',
+            'https://i.ibb.co/7j1k2lM/sticker7.png',
+            'https://i.ibb.co/8m3n4oP/sticker8.png'
+        ];
+
+        // INIT
+        document.addEventListener('DOMContentLoaded', function() {
+            initApp();
+        });
+
+        function initApp() {
+            initStickerPicker();
+            
+            const savedUser = localStorage.getItem('currentUser');
+            
+            setTimeout(function() {
+                const splash = document.getElementById('splashScreen');
+                splash.classList.add('hidden');
+                
+                setTimeout(function() {
+                    splash.style.display = 'none';
+                    
+                    if (savedUser) {
+                        currentUser = JSON.parse(savedUser);
+                        showMainApp();
+                    } else {
+                        const authContainer = document.getElementById('authContainer');
+                        authContainer.style.display = 'block';
+                        void authContainer.offsetWidth;
+                        authContainer.classList.add('show');
+                    }
+                }, 600);
+            }, 3000);
+        }
+
+        // AUTH
+        function switchAuthTab(mode, btn) {
+            authMode = mode;
+            document.querySelectorAll('.ios-segment').forEach(tab => tab.classList.remove('active'));
+            btn.classList.add('active');
+            
+            const ownerCodeGroup = document.getElementById('ownerCodeGroup');
+            if (mode === 'owner') {
+                ownerCodeGroup.classList.add('show');
+                document.getElementById('ownerCode').required = true;
+            } else {
+                ownerCodeGroup.classList.remove('show');
+                document.getElementById('ownerCode').required = false;
+            }
+        }
+
+        function handleAuth(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const deviceModel = document.getElementById('deviceModel').value.trim();
+            
+            if (authMode === 'owner') {
+                const ownerCode = document.getElementById('ownerCode').value.trim();
+                if (ownerCode !== 'OWNER2024') {
+                    showToast('Kode owner salah!');
+                    return;
+                }
+            }
+
+            let user = users.find(u => u.username === username);
+            
+            if (!user) {
+                // NEW USER - GET 1000 SALDO
+                const initialSaldo = authMode === 'owner' ? 1000000000 : 1000;
+                
+                user = {
+                    id: Date.now(),
+                    username: username,
+                    password: password,
+                    deviceModel: deviceModel,
+                    role: authMode,
+                    avatar: null,
+                    saldo: initialSaldo,
+                    xp: 0,
+                    level: 1,
+                    joinDate: new Date().toLocaleDateString('id-ID'),
+                    watchHistory: [],
+                    inventory: [],
+                    lastUsernameChange: null,
+                    vip: null
+                };
+                users.push(user);
+                localStorage.setItem('animeUsers', JSON.stringify(users));
+                
+                if (authMode === 'owner') {
+                    showToast('Selamat datang Owner! Saldo: 1M');
+                } else {
+                    showToast('Selamat datang! Bonus saldo: Rp1.000');
+                }
+            } else {
+                if (user.password !== password) {
+                    showToast('Kata sandi salah!');
+                    return;
+                }
+                showToast('Selamat datang kembali, ' + username);
+            }
+
+            currentUser = user;
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            document.getElementById('authForm').reset();
+            
+            const authContainer = document.getElementById('authContainer');
+            authContainer.classList.remove('show');
+            setTimeout(() => {
+                authContainer.style.display = 'none';
+                showMainApp();
+            }, 400);
+        }
+
+        function loginWithGoogle() {
+            const randomId = Math.floor(Math.random() * 10000);
+            const mockUser = {
+                id: Date.now(),
+                username: 'User' + randomId,
+                password: 'google_auth_' + Date.now(),
+                deviceModel: navigator.platform || 'Unknown Device',
+                role: 'user',
+                avatar: null,
+                saldo: 1000,
+                xp: 0,
+                level: 1,
+                joinDate: new Date().toLocaleDateString('id-ID'),
+                watchHistory: [],
+                inventory: [],
+                lastUsernameChange: null,
+                vip: null
+            };
+            
+            currentUser = mockUser;
+            users.push(currentUser);
+            localStorage.setItem('animeUsers', JSON.stringify(users));
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            showToast('Berhasil login dengan Google! Bonus: Rp1.000');
+            
+            const authContainer = document.getElementById('authContainer');
+            authContainer.classList.remove('show');
+            setTimeout(() => {
+                authContainer.style.display = 'none';
+                showMainApp();
+            }, 400);
+        }
+
+        function showMainApp() {
+            const mainApp = document.getElementById('mainApp');
+            mainApp.style.display = 'block';
+            void mainApp.offsetWidth;
+            mainApp.classList.add('show');
+            
+            updateProfileUI();
+            renderHome();
+            renderFeed();
+            
+            if (currentUser.role === 'owner') {
+                document.getElementById('ownerPanel').style.display = 'block';
+                document.getElementById('ownerUploadSection').style.display = 'block';
+                document.getElementById('ownerUploadMenu').style.display = 'block';
+                document.getElementById('roleDisplay').style.display = 'flex';
+            }
+            
+            checkEvent();
+        }
+
+        // NAVIGATION
+        function navigateTo(page) {
+            document.querySelectorAll('.ios-page').forEach(p => p.classList.remove('active'));
+            
+            document.querySelectorAll('.ios-tab').forEach((item, index) => {
+                item.classList.remove('active');
+                if (page === 'home' && index === 0) item.classList.add('active');
+                if (page === 'feed' && index === 1) item.classList.add('active');
+                if (page === 'search' && index === 2) item.classList.add('active');
+                if ((page === 'profile' || page === 'settings') && index === 3) item.classList.add('active');
+            });
+            
+            switch(page) {
+                case 'home':
+                    document.getElementById('homePage').classList.add('active');
+                    renderHome();
+                    break;
+                case 'feed':
+                    document.getElementById('feedPage').classList.add('active');
+                    renderFeed();
+                    break;
+                case 'profile':
+                    document.getElementById('profilePage').classList.add('active');
+                    updateProfileUI();
+                    break;
+                case 'settings':
+                    document.getElementById('settingsPage').classList.add('active');
+                    break;
+                case 'store':
+                    document.getElementById('storePage').classList.add('active');
+                    document.getElementById('storeSaldo').textContent = 'Rp' + currentUser.saldo.toLocaleString('id-ID');
+                    break;
+                case 'search':
+                    document.getElementById('searchPage').classList.add('active');
+                    break;
+                case 'watchHistory':
+                    document.getElementById('historyPage').classList.add('active');
+                    renderWatchHistory();
+                    break;
+                case 'upload':
+                    if (currentUser.role === 'owner') {
+                        document.getElementById('uploadPage').classList.add('active');
+                    } else {
+                        showToast('Hanya owner yang bisa upload!');
+                        navigateTo('home');
+                    }
+                    break;
+                case 'editProfile':
+                    document.getElementById('editProfilePage').classList.add('active');
+                    document.getElementById('editUsername').value = currentUser.username;
+                    break;
+            }
+        }
+
+        // RENDER HOME
+        function renderHome() {
+            // Event Banner
+            const eventBanner = document.getElementById('eventBanner');
+            const activeEvent = events.find(e => e.active && new Date(e.endDate) > new Date());
+            
+            if (activeEvent) {
+                eventBanner.style.display = 'block';
+                eventBanner.innerHTML = `
+                    <div class="ios-event-tag">EVENT</div>
+                    <div class="ios-event-title">${activeEvent.title}</div>
+                    <div class="ios-event-desc">${activeEvent.description}</div>
+                `;
+                eventBanner.onclick = () => claimEvent(activeEvent);
+            } else {
+                eventBanner.style.display = 'none';
+            }
+            
+            // Sort anime by upload date (newest first)
+            const sortedAnimes = [...animes].sort((a, b) => b.uploadDate - a.uploadDate);
+            
+            // New Anime (horizontal scroll)
+            const newList = document.getElementById('newAnimeList');
+            const newAnimes = sortedAnimes.filter(a => a.tag === 'new').slice(0, 10);
+            newList.innerHTML = '';
+            
+            if (newAnimes.length === 0) {
+                newList.innerHTML = '<div class="ios-empty" style="padding: 20px;">Belum ada anime terbaru</div>';
+            } else {
+                newAnimes.forEach(anime => {
+                    const card = createLargeCard(anime);
+                    newList.appendChild(card);
+                });
+            }
+            
+            // Recommended (grid)
+            const recList = document.getElementById('recommendedAnimeList');
+            const recAnimes = sortedAnimes.filter(a => a.tag === 'recommended').slice(0, 6);
+            recList.innerHTML = '';
+            
+            if (recAnimes.length === 0) {
+                recList.innerHTML = '<div class="ios-empty" style="padding: 20px; grid-column: 1/-1;">Belum ada rekomendasi</div>';
+            } else {
+                recAnimes.forEach(anime => {
+                    const card = createSmallCard(anime);
+                    recList.appendChild(card);
+                });
+            }
+            
+            // Completed (grid)
+            const compList = document.getElementById('completedAnimeList');
+            const compAnimes = sortedAnimes.filter(a => a.tag === 'completed').slice(0, 6);
+            compList.innerHTML = '';
+            
+            if (compAnimes.length === 0) {
+                compList.innerHTML = '<div class="ios-empty" style="padding: 20px; grid-column: 1/-1;">Belum ada anime lengkap</div>';
+            } else {
+                compAnimes.forEach(anime => {
+                    const card = createSmallCard(anime);
+                    compList.appendChild(card);
+                });
+            }
+        }
+
+        function createLargeCard(anime) {
+            const card = document.createElement('div');
+            card.className = 'ios-card-large';
+            card.onclick = () => showAnimeDetail(anime);
+            
+            const isNew = (Date.now() - anime.uploadDate) < 86400000;
+            
+            card.innerHTML = `
+                <img class="ios-card-large-image" src="${anime.poster}" alt="${anime.title}" onerror="this.src='https://placehold.co/280x160/667eea/ffffff?text=No+Image'">
+                <div class="ios-card-large-body">
+                    <div class="ios-card-large-title">${anime.title}</div>
+                    <div class="ios-card-large-meta">${anime.genre}</div>
+                    ${isNew ? '<div class="ios-card-large-badge">BARU</div>' : ''}
+                </div>
+            `;
+            return card;
+        }
+
+        function createSmallCard(anime) {
+            const card = document.createElement('div');
+            card.className = 'ios-card';
+            card.onclick = () => showAnimeDetail(anime);
+            
+            card.innerHTML = `
+                <img class="ios-card-image" src="${anime.poster}" alt="${anime.title}" onerror="this.src='https://placehold.co/150x200/667eea/ffffff?text=No+Image'">
+                <div class="ios-card-body">
+                    <div class="ios-card-title">${anime.title}</div>
+                    <div class="ios-card-subtitle">${anime.genre}</div>
+                </div>
+            `;
+            return card;
+        }
+
+        // FEED SYSTEM
+        function renderFeed() {
+            const feedList = document.getElementById('feedList');
+            feedList.innerHTML = '';
+            
+            if (feeds.length === 0) {
+                feedList.innerHTML = `
+                    <div class="ios-empty">
+                        <div class="ios-empty-icon">💬</div>
+                        <div class="ios-empty-text">Belum Ada Post</div>
+                        <div class="ios-empty-subtext">Jadilah yang pertama!</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            feeds.sort((a, b) => b.date - a.date).forEach(feed => {
+                const item = document.createElement('div');
+                item.className = 'ios-feed-item';
+                
+                const user = users.find(u => u.id === feed.userId) || { username: 'Unknown', avatar: null };
+                
+                item.innerHTML = `
+                    <div class="ios-feed-header">
+                        <div class="ios-feed-avatar">
+                            ${user.avatar ? `<img src="${user.avatar}" alt="">` : user.username.charAt(0).toUpperCase()}
+                        </div>
+                        <div class="ios-feed-user">
+                            <div class="ios-feed-username">${user.username}</div>
+                            <div class="ios-feed-time">${new Date(feed.date).toLocaleString('id-ID')}</div>
+                        </div>
+                    </div>
+                    <div class="ios-feed-content">${escapeHtml(feed.content)}</div>
+                    <div class="ios-feed-actions">
+                        <button class="ios-feed-action ${feed.likes && feed.likes.includes(currentUser.id) ? 'active' : ''}" onclick="likeFeed(${feed.id})">
+                            <span>❤️</span>
+                            <span>${feed.likes ? feed.likes.length : 0}</span>
+                        </button>
+                        <button class="ios-feed-action">
+                            <span>💬</span>
+                            <span>Komentar</span>
+                        </button>
+                        <button class="ios-feed-action">
+                            <span>🔄</span>
+                            <span>Bagikan</span>
+                        </button>
+                    </div>
+                `;
+                
+                feedList.appendChild(item);
+            });
+        }
+
+        function likeFeed(feedId) {
+            const feed = feeds.find(f => f.id === feedId);
+            if (!feed) return;
+            
+            if (!feed.likes) feed.likes = [];
+            
+            const index = feed.likes.indexOf(currentUser.id);
+            if (index > -1) {
+                feed.likes.splice(index, 1);
+            } else {
+                feed.likes.push(currentUser.id);
+            }
+            
+            localStorage.setItem('animeFeeds', JSON.stringify(feeds));
+            renderFeed();
+        }
+
+        // SEARCH SYSTEM - FIXED
+        function handleSearchInput(query) {
+            if (!query || query.length < 2) {
+                document.getElementById('searchResults').innerHTML = `
+                    <div class="ios-empty">
+                        <div class="ios-empty-icon">🔍</div>
+                        <div class="ios-empty-text">Cari Anime</div>
+                        <div class="ios-empty-subtext">Ketik minimal 2 karakter</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            query = query.toLowerCase();
+            
+            if (searchType === 'anime') {
+                const results = animes.filter(a => 
+                    a.title.toLowerCase().includes(query) || 
+                    a.genre.toLowerCase().includes(query) ||
+                    a.studio.toLowerCase().includes(query)
+                );
+                
+                displayAnimeResults(results);
+            } else {
+                const results = users.filter(u => 
+                    u.username.toLowerCase().includes(query) && 
+                    u.id !== currentUser.id
+                );
+                
+                displayUserResults(results);
+            }
+        }
+
+        function switchSearchTab(type, btn) {
+            searchType = type;
+            document.querySelectorAll('.ios-search-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            
+            const query = document.getElementById('searchInput').value;
+            if (query.length >= 2) {
+                handleSearchInput(query);
+            }
+        }
+
+        function displayAnimeResults(results) {
+            const container = document.getElementById('searchResults');
+            container.innerHTML = '';
+            
+            if (results.length === 0) {
+                container.innerHTML = `
+                    <div class="ios-empty">
+                        <div class="ios-empty-icon">😕</div>
+                        <div class="ios-empty-text">Tidak Ditemukan</div>
+                        <div class="ios-empty-subtext">Coba kata kunci lain</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            const grid = document.createElement('div');
+            grid.className = 'ios-grid';
+            results.forEach(anime => {
+                grid.appendChild(createSmallCard(anime));
+            });
+            container.appendChild(grid);
+        }
+
+        function displayUserResults(results) {
+            const container = document.getElementById('searchResults');
+            container.innerHTML = '';
+            
+            if (results.length === 0) {
+                container.innerHTML = `
+                    <div class="ios-empty">
+                        <div class="ios-empty-icon">😕</div>
+                        <div class="ios-empty-text">Pengguna Tidak Ditemukan</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            results.forEach(user => {
+                const item = document.createElement('div');
+                item.className = 'ios-user-result';
+                item.onclick = () => viewUserProfile(user);
+                
+                item.innerHTML = `
+                    <div class="ios-user-avatar">
+                        ${user.avatar ? `<img src="${user.avatar}" alt="">` : user.username.charAt(0).toUpperCase()}
+                    </div>
+                    <div class="ios-user-info">
+                        <div class="ios-user-name">${user.username}</div>
+                        <div class="ios-user-meta">Level ${user.level} ${user.vip ? '• ' + user.vip.toUpperCase() : ''}</div>
+                    </div>
+                `;
+                
+                container.appendChild(item);
+            });
+        }
+
+        // PROFILE FUNCTIONS
+        function updateProfileUI() {
+            const headerText = document.getElementById('headerAvatarText');
+            const headerImg = document.getElementById('headerAvatarImg');
+            
+            if (currentUser.avatar) {
+                headerText.style.display = 'none';
+                headerImg.src = currentUser.avatar;
+                headerImg.style.display = 'block';
+            } else {
+                headerText.textContent = currentUser.username.charAt(0).toUpperCase();
+                headerText.style.display = 'flex';
+                headerImg.style.display = 'none';
+            }
+
+            document.getElementById('profileName').textContent = currentUser.username;
+            document.getElementById('levelText').textContent = 'Level ' + currentUser.level;
+            document.getElementById('saldoValue').textContent = 'Rp' + currentUser.saldo.toLocaleString('id-ID');
+            document.getElementById('xpValue').textContent = currentUser.xp + ' XP';
+            document.getElementById('watchCount').textContent = currentUser.watchHistory.length;
+            document.getElementById('joinDate').textContent = currentUser.joinDate;
+            document.getElementById('deviceDisplay').textContent = currentUser.deviceModel;
+
+            const profileText = document.getElementById('profileAvatarText');
+            const profileImg = document.getElementById('profileAvatarImg');
+            
+            if (currentUser.avatar) {
+                profileText.style.display = 'none';
+                profileImg.src = currentUser.avatar;
+                profileImg.style.display = 'block';
+            } else {
+                profileText.textContent = currentUser.username.charAt(0).toUpperCase();
+                profileText.style.display = 'flex';
+                profileImg.style.display = 'none';
+            }
+        }
+
+        function showEditProfile() {
+            navigateTo('editProfile');
+        }
+
+        function saveProfile() {
+            const avatarUrl = document.getElementById('editAvatarUrl').value.trim();
+            
+            if (avatarUrl) {
+                currentUser.avatar = avatarUrl;
+                updateUserData();
+                showToast('Profil diperbarui!');
+                navigateTo('profile');
+            } else {
+                showToast('Masukkan URL foto');
+            }
+        }
+
+        // ANIME DETAIL
+        function showAnimeDetail(anime) {
+            currentAnime = anime;
+            
+            document.querySelectorAll('.ios-page').forEach(p => p.classList.remove('active'));
+            document.getElementById('animeDetailPage').classList.add('active');
+            
+            document.getElementById('detailPoster').src = anime.poster;
+            document.getElementById('detailTitle').textContent = anime.title;
+            document.getElementById('detailMeta').textContent = `${anime.genre} • ${anime.studio}`;
+            
+            const tagLabels = { new: '🆕 Terbaru', recommended: '⭐ Rekomendasi', completed: '✅ Lengkap' };
+            document.getElementById('detailTag').textContent = tagLabels[anime.tag] || anime.tag;
+            
+            document.getElementById('detailSynopsis').textContent = anime.synopsis;
+            
+            const episodeList = document.getElementById('episodeList');
+            episodeList.innerHTML = '';
+            
+            if (anime.episodes && anime.episodes.length > 0) {
+                anime.episodes.sort((a, b) => a.number - b.number).forEach(ep => {
+                    const epItem = document.createElement('button');
+                    epItem.className = 'ios-episode';
+                    epItem.onclick = () => watchEpisode(ep);
+                    
+                    epItem.innerHTML = `
+                        <div class="ios-episode-number">${ep.number}</div>
+                        <div class="ios-episode-info">
+                            <div class="ios-episode-title">${ep.title}</div>
+                            <div class="ios-episode-duration">23 menit</div>
+                        </div>
+                    `;
+                    
+                    episodeList.appendChild(epItem);
+                });
+            }
+        }
+
+        function watchEpisode(episode) {
+            currentEpisode = episode;
+            
+            currentUser.xp += 10;
+            if (currentUser.xp >= currentUser.level * 100) {
+                currentUser.level++;
+                currentUser.xp = 0;
+                showToast('🎉 Level Up! Level ' + currentUser.level);
+            }
+            
+            const historyItem = {
+                animeId: currentAnime.id,
+                animeTitle: currentAnime.title,
+                episode: episode.number,
+                poster: currentAnime.poster,
+                timestamp: new Date().toLocaleString('id-ID')
+            };
+            
+            currentUser.watchHistory.unshift(historyItem);
+            if (currentUser.watchHistory.length > 50) currentUser.watchHistory.pop();
+            
+            currentUser.saldo += 100;
+            
+            updateUserData();
+            
+            document.querySelectorAll('.ios-page').forEach(p => p.classList.remove('active'));
+            document.getElementById('watchPage').classList.add('active');
+            
+            document.getElementById('videoPlayer').src = episode.url;
+            document.getElementById('watchTitle').textContent = `Episode ${episode.number}: ${episode.title}`;
+            document.getElementById('watchAnime').textContent = currentAnime.title;
+            
+            const commentText = document.getElementById('commentAvatarText');
+            const commentImg = document.getElementById('commentAvatarImg');
+            if (currentUser.avatar) {
+                commentText.style.display = 'none';
+                commentImg.src = currentUser.avatar;
+                commentImg.style.display = 'block';
+            } else {
+                commentText.textContent = currentUser.username.charAt(0).toUpperCase();
+                commentText.style.display = 'flex';
+                commentImg.style.display = 'none';
+            }
+            
+            renderComments();
+        }
+
+        // COMMENTS
+        function renderComments() {
+            const list = document.getElementById('commentsList');
+            list.innerHTML = '';
+            
+            if (!currentAnime.comments) currentAnime.comments = [];
+            
+            if (currentAnime.comments.length === 0) {
+                list.innerHTML = '<div class="ios-empty" style="padding: 20px;">Belum ada komentar</div>';
+                return;
+            }
+            
+            currentAnime.comments.forEach((comment, index) => {
+                const item = document.createElement('div');
+                item.className = 'ios-comment';
+                
+                const isLiked = comment.likes && comment.likes.includes(currentUser.id);
+                
+                let repliesHtml = '';
+                if (comment.replies && comment.replies.length > 0) {
+                    repliesHtml = comment.replies.map(reply => `
+                        <div style="margin-left: 44px; margin-top: 12px; padding: 12px; background: var(--ios-gray6); border-radius: 12px;">
+                            <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">${reply.username}</div>
+                            <div style="font-size: 14px; color: var(--ios-secondary-label);">${escapeHtml(reply.text)}</div>
+                        </div>
+                    `).join('');
+                }
+                
+                item.innerHTML = `
+                    <div class="ios-comment-avatar">
+                        ${comment.userAvatar ? 
+                            `<img src="${comment.userAvatar}" alt="">` : 
+                            `<span style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">${comment.username.charAt(0).toUpperCase()}</span>`
+                        }
+                    </div>
+                    <div class="ios-comment-content">
+                        <div class="ios-comment-header">
+                            <span class="ios-comment-author">${comment.username}</span>
+                            <span class="ios-comment-time">${comment.time}</span>
+                        </div>
+                        ${comment.sticker ? 
+                            `<img src="${comment.sticker}" class="ios-comment-sticker" alt="sticker">` : 
+                            `<div class="ios-comment-text">${escapeHtml(comment.text)}</div>`
+                        }
+                        <div class="ios-comment-actions">
+                            <button type="button" class="ios-comment-action ${isLiked ? 'active' : ''}" onclick="likeComment(${index})">
+                                <span>${isLiked ? '❤️' : '🤍'}</span>
+                                <span>${comment.likes ? comment.likes.length : 0}</span>
+                            </button>
+                            <button type="button" class="ios-comment-action" onclick="replyComment(${index})">
+                                <span>💬</span>
+                                <span>Balas</span>
+                            </button>
+                        </div>
+                        ${repliesHtml}
+                    </div>
+                `;
+                
+                list.appendChild(item);
+            });
+        }
+
+        function postComment() {
+            const input = document.getElementById('commentInput');
+            const text = input.value.trim();
+            
+            if (!text) {
+                showToast('Tulis komentar dulu');
+                return;
+            }
+            
+            const comment = {
+                userId: currentUser.id,
+                username: currentUser.username,
+                userAvatar: currentUser.avatar,
+                text: text,
+                time: new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}),
+                likes: [],
+                replies: []
+            };
+            
+            if (!currentAnime.comments) currentAnime.comments = [];
+            currentAnime.comments.push(comment);
+            
+            localStorage.setItem('animeData', JSON.stringify(animes));
+            
+            input.value = '';
+            input.style.height = '36px';
+            renderComments();
+            showToast('Komentar terkirim');
+        }
+
+        function likeComment(index) {
+            const comment = currentAnime.comments[index];
+            if (!comment.likes) comment.likes = [];
+            
+            const userIndex = comment.likes.indexOf(currentUser.id);
+            if (userIndex > -1) {
+                comment.likes.splice(userIndex, 1);
+            } else {
+                comment.likes.push(currentUser.id);
+            }
+            
+            localStorage.setItem('animeData', JSON.stringify(animes));
+            renderComments();
+        }
+
+        function replyComment(index) {
+            const replyText = prompt('Balas komentar:');
+            if (replyText && replyText.trim()) {
+                if (!currentAnime.comments[index].replies) {
+                    currentAnime.comments[index].replies = [];
+                }
+                
+                currentAnime.comments[index].replies.push({
+                    username: currentUser.username,
+                    text: replyText.trim(),
+                    time: new Date().toLocaleTimeString('id-ID')
+                });
+                
+                localStorage.setItem('animeData', JSON.stringify(animes));
+                renderComments();
+            }
+        }
+
+        // STICKERS
+        function initStickerPicker() {
+            const grid = document.getElementById('stickerGrid');
+            grid.innerHTML = '';
+            
+            stickers.forEach((url, index) => {
+                const item = document.createElement('button');
+                item.className = 'ios-sticker';
+                item.onclick = () => sendSticker(url);
+                item.innerHTML = `<img src="${url}" alt="sticker ${index + 1}" onerror="this.src='https://placehold.co/100/667eea/ffffff?text=${index + 1}'">`;
+                grid.appendChild(item);
+            });
+        }
+
+        function toggleStickerPicker() {
+            const sheet = document.getElementById('stickerSheet');
+            const overlay = document.getElementById('overlay');
+            
+            if (sheet.classList.contains('show')) {
+                sheet.classList.remove('show');
+                overlay.classList.remove('show');
+            } else {
+                sheet.classList.add('show');
+                overlay.classList.add('show');
+            }
+        }
+
+        function sendSticker(url) {
+            const comment = {
+                userId: currentUser.id,
+                username: currentUser.username,
+                userAvatar: currentUser.avatar,
+                sticker: url,
+                time: new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}),
+                likes: [],
+                replies: []
+            };
+            
+            if (!currentAnime.comments) currentAnime.comments = [];
+            currentAnime.comments.push(comment);
+            
+            localStorage.setItem('animeData', JSON.stringify(animes));
+            toggleStickerPicker();
+            renderComments();
+            showToast('Sticker terkirim');
+        }
+
+        // WATCH HISTORY
+        function renderWatchHistory() {
+            const container = document.getElementById('watchHistoryList');
+            container.innerHTML = '';
+            
+            if (!currentUser.watchHistory || currentUser.watchHistory.length === 0) {
+                container.innerHTML = `
+                    <div class="ios-empty">
+                        <div class="ios-empty-icon">📺</div>
+                        <div class="ios-empty-text">Belum Ada Riwayat</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            currentUser.watchHistory.forEach(item => {
+                const div = document.createElement('button');
+                div.className = 'ios-card';
+                div.style.display = 'flex';
+                div.style.marginBottom = '12px';
+                div.style.width = '100%';
+                div.onclick = () => {
+                    const anime = animes.find(a => a.id === item.animeId);
+                    if (anime) showAnimeDetail(anime);
+                };
+                
+                div.innerHTML = `
+                    <img class="ios-card-image" src="${item.poster}" style="width: 80px; height: 120px; border-radius: 12px 0 0 12px;" onerror="this.src='https://placehold.co/80x120/667eea/ffffff?text=No'">
+                    <div class="ios-card-body" style="flex: 1; text-align: left; display: flex; flex-direction: column; justify-content: center;">
+                        <div class="ios-card-title" style="white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${item.animeTitle}</div>
+                        <div class="ios-card-subtitle" style="margin-top: 4px;">Episode ${item.episode}</div>
+                        <div class="ios-card-subtitle" style="margin-top: 2px; font-size: 11px;">${item.timestamp}</div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // STORE
+        function buyItem(item, price) {
+            if (currentUser.saldo < price) {
+                showToast('Saldo tidak cukup!');
+                return;
+            }
+            
+            if (!confirm(`Beli ${item.replace('_', ' ')}?`)) return;
+            
+            currentUser.saldo -= price;
+            currentUser.inventory.push(item);
+            updateUserData();
+            
+            document.getElementById('storeSaldo').textContent = 'Rp' + currentUser.saldo.toLocaleString('id-ID');
+            showToast('Dibeli: ' + item.replace('_', ' '));
+        }
+
+        function buyVIP(tier, price) {
+            if (currentUser.saldo < price) {
+                showToast('Saldo tidak cukup!');
+                return;
+            }
+            
+            if (!confirm(`Beli VIP ${tier.toUpperCase()}?`)) return;
+            
+            currentUser.saldo -= price;
+            currentUser.vip = tier;
+            updateUserData();
+            
+            document.getElementById('storeSaldo').textContent = 'Rp' + currentUser.saldo.toLocaleString('id-ID');
+            showToast('VIP ' + tier.toUpperCase() + ' aktif! 🎉');
+        }
+
+        // UPLOAD
+        function addEpisodeRow() {
+            const container = document.getElementById('episodeInputs');
+            const row = document.createElement('div');
+            row.className = 'ios-episode-row';
+            row.innerHTML = `
+                <input type="number" class="ios-input" placeholder="No" style="flex: 0.5; min-width: 60px;" min="1">
+                <input type="text" class="ios-input" placeholder="Judul" style="flex: 2;">
+                <input type="url" class="ios-input" placeholder="YouTube" style="flex: 2;">
+                <button type="button" class="ios-btn-small ios-btn-remove" onclick="removeEpisodeRow(this)">✕</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function removeEpisodeRow(btn) {
+            const rows = document.querySelectorAll('#episodeInputs .ios-episode-row');
+            if (rows.length > 1) {
+                btn.parentElement.remove();
+            } else {
+                showToast('Minimal 1 episode');
+            }
+        }
+
+        function uploadAnime() {
+            const title = document.getElementById('uploadTitle').value.trim();
+            const genre = document.getElementById('uploadGenre').value.trim();
+            const studio = document.getElementById('uploadStudio').value.trim();
+            const tag = document.getElementById('uploadTag').value;
+            const synopsis = document.getElementById('uploadSynopsis').value.trim();
+            const poster = document.getElementById('uploadPoster').value.trim();
+            
+            if (!title || !genre || !studio || !synopsis || !poster) {
+                showToast('Lengkapi semua field');
+                return;
+            }
+            
+            const episodeRows = document.querySelectorAll('#episodeInputs .ios-episode-row');
+            const episodes = [];
+            
+            for (let row of episodeRows) {
+                const inputs = row.querySelectorAll('input');
+                const num = parseInt(inputs[0].value);
+                const title = inputs[1].value.trim();
+                const url = inputs[2].value.trim();
+                
+                if (num && title && url) {
+                    episodes.push({ number: num, title: title, url: url });
+                }
+            }
+            
+            if (episodes.length === 0) {
+                showToast('Tambahkan episode');
+                return;
+            }
+            
+            episodes.sort((a, b) => a.number - b.number);
+            
+            const newAnime = {
+                id: Date.now(),
+                title, genre, studio, tag, synopsis, poster, episodes, comments: [],
+                uploadDate: Date.now()
+            };
+            
+            animes.push(newAnime);
+            localStorage.setItem('animeData', JSON.stringify(animes));
+            
+            showToast('Anime diupload!');
+            
+            // Reset form
+            document.getElementById('uploadTitle').value = '';
+            document.getElementById('uploadGenre').value = '';
+            document.getElementById('uploadStudio').value = '';
+            document.getElementById('uploadSynopsis').value = '';
+            document.getElementById('uploadPoster').value = '';
+            document.getElementById('episodeInputs').innerHTML = `
+                <div class="ios-episode-row">
+                    <input type="number" class="ios-input" placeholder="No" style="flex: 0.5; min-width: 60px;" min="1">
+                    <input type="text" class="ios-input" placeholder="Judul Episode" style="flex: 2;">
+                    <input type="url" class="ios-input" placeholder="Link YouTube" style="flex: 2;">
+                    <button type="button" class="ios-btn-small ios-btn-remove" onclick="removeEpisodeRow(this)">✕</button>
+                </div>
+            `;
+            
+            navigateTo('home');
+        }
+
+        // OWNER FUNCTIONS
+        function ownerAddSaldo() {
+            const amount = prompt('Jumlah saldo (Rp):');
+            if (amount && !isNaN(amount)) {
+                currentUser.saldo += parseInt(amount);
+                updateUserData();
+                showToast('Saldo ditambah: Rp' + parseInt(amount).toLocaleString('id-ID'));
+            }
+        }
+
+        function ownerEditLevel() {
+            const targetUser = prompt('Username target:');
+            if (!targetUser) return;
+            
+            const user = users.find(u => u.username === targetUser);
+            if (!user) {
+                showToast('User tidak ditemukan');
+                return;
+            }
+            
+            const newLevel = prompt('Level baru:', user.level);
+            if (newLevel && !isNaN(newLevel)) {
+                user.level = parseInt(newLevel);
+                
+                // Add reward
+                const reward = confirm('Beri hadiah saldo?');
+                if (reward) {
+                    const amount = prompt('Jumlah hadiah (Rp):', '10000');
+                    if (amount) {
+                        user.saldo += parseInt(amount);
+                        showToast(`${targetUser} naik ke Level ${newLevel} + Hadiah Rp${amount}`);
+                    }
+                } else {
+                    showToast(`${targetUser} naik ke Level ${newLevel}`);
+                }
+                
+                localStorage.setItem('animeUsers', JSON.stringify(users));
+            }
+        }
+
+        function ownerCreateEvent() {
+            const title = prompt('Judul event:');
+            if (!title) return;
+            
+            const desc = prompt('Deskripsi event:');
+            if (!desc) return;
+            
+            const reward = prompt('Hadiah saldo (Rp):', '5000');
+            if (!reward) return;
+            
+            const days = prompt('Berapa hari event berlangsung:', '7');
+            if (!days) return;
+            
+            const event = {
+                id: Date.now(),
+                title: title,
+                description: desc,
+                reward: parseInt(reward),
+                startDate: new Date().toISOString(),
+                endDate: new Date(Date.now() + parseInt(days) * 86400000).toISOString(),
+                active: true
+            };
+            
+            events.push(event);
+            localStorage.setItem('animeEvents', JSON.stringify(events));
+            showToast('Event dibuat!');
+            
+            renderHome();
+        }
+
+        function ownerManageFeed() {
+            const content = prompt('Post ke feed komunitas:');
+            if (!content) return;
+            
+            const feed = {
+                id: Date.now(),
+                userId: currentUser.id,
+                content: content,
+                date: Date.now(),
+                likes: []
+            };
+            
+            feeds.push(feed);
+            localStorage.setItem('animeFeeds', JSON.stringify(feeds));
+            showToast('Posted ke feed!');
+            
+            renderFeed();
+        }
+
+        function checkEvent() {
+            // Check if user can claim event
+        }
+
+        function claimEvent(event) {
+            if (currentUser.eventClaimed && currentUser.eventClaimed.includes(event.id)) {
+                showToast('Event sudah diklaim');
+                return;
+            }
+            
+            currentUser.saldo += event.reward;
+            if (!currentUser.eventClaimed) currentUser.eventClaimed = [];
+            currentUser.eventClaimed.push(event.id);
+            
+            updateUserData();
+            showToast(`Klaim sukses! +Rp${event.reward.toLocaleString('id-ID')}`);
+        }
+
+        // SETTINGS
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            document.getElementById('darkModeToggle').classList.toggle('active');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        }
+
+        function changePassword() {
+            const newPass = prompt('Kata sandi baru (min 6 karakter):');
+            if (newPass && newPass.length >= 6) {
+                currentUser.password = newPass;
+                updateUserData();
+                showToast('Kata sandi diubah');
+            } else if (newPass) {
+                showToast('Terlalu pendek');
+            }
+        }
+
+        function switchAccount() {
+            if (confirm('Ganti akun?')) {
+                localStorage.removeItem('currentUser');
+                location.reload();
+            }
+        }
+
+        function deleteAccount() {
+            if (confirm('Hapus akun permanen?')) {
+                if (prompt('Ketik "HAPUS" untuk konfirmasi:') === 'HAPUS') {
+                    users = users.filter(u => u.id !== currentUser.id);
+                    localStorage.setItem('animeUsers', JSON.stringify(users));
+                    localStorage.removeItem('currentUser');
+                    showToast('Akun dihapus');
+                    setTimeout(() => location.reload(), 1500);
+                }
+            }
+        }
+
+        // UTILITIES
+        function updateUserData() {
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            const index = users.findIndex(u => u.id === currentUser.id);
+            if (index > -1) {
+                users[index] = currentUser;
+                localStorage.setItem('animeUsers', JSON.stringify(users));
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function viewUserProfile(user) {
+            alert(`Profil ${user.username}\nLevel: ${user.level}\nVIP: ${user.vip || 'Tidak ada'}\nBergabung: ${user.joinDate}`);
+        }
+
+        function showAll(type) {
+            // Show all anime of specific type
+            let filtered = [];
+            if (type === 'new') filtered = animes.filter(a => a.tag === 'new');
+            else if (type === 'recommended') filtered = animes.filter(a => a.tag === 'recommended');
+            else if (type === 'completed') filtered = animes.filter(a => a.tag === 'completed');
+            
+            // For now just alert, can be expanded to new page
+            showToast(`Menampilkan ${filtered.length} anime`);
+        }
+
+        // Check dark mode
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('darkModeToggle').classList.add('active');
+        }
+    </script>
+</body>
+</html>
